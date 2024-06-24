@@ -59,6 +59,11 @@
     <button on:click={() => (month = (month - 1 + 12) % 12)}>&gt;</button>
 </div>
 <div class="calender divide-x divide-y crooked">
+    {#each dayNames as dayName}<div class="patrick-hand text-center title">
+            {dayName}
+        </div>
+    {/each}
+
     {#each days as day}
         <div class="day {day.enabled ? 'crooked' : ''}">
             {day.name}
@@ -106,5 +111,10 @@
         border-top-right-radius: 15px 225px;
         border-bottom-right-radius: 225px 15px;
         border-bottom-left-radius: 15px 255px;
+    }
+    .title {
+        font-weight: bold;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
     }
 </style>

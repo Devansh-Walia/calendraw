@@ -1,9 +1,6 @@
 <script lang="ts">
-    interface Day {
-        name: string;
-        enabled: boolean;
-        date: Date;
-    }
+    import type { Day } from '../../utils/types';
+
     var dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     let monthNames = [
         'January',
@@ -28,26 +25,32 @@
 
     function initMonth() {
         let daysLocal: Day[] = [];
-        let monthAbbrev = monthNames[month].slice(0, 3);
 
         var daysInThisMonth = new Date(year, month + 1, 0).getDate();
 
-        for (let i = 0; i < daysInThisMonth; i++) {
-            let d = new Date(year, month, i + 1);
-            if (i == 0)
-                daysLocal.push({
-                    name: monthAbbrev + ' ' + (i + 1),
-                    enabled: true,
-                    date: d,
-                });
-            else daysLocal.push({ name: '' + (i + 1), enabled: true, date: d });
+        var firstDay = new Date(year, month, 1).getDay();
+
+        for (let index = 0; index < firstDay; index++) {
+            daysLocal.push({
+                name: '',
+                enabled: false,
+                date: new Date(year, month, 0),
+            });
+        }
+
+        for (let index = 0; index < daysInThisMonth; index++) {
+            let thisDate = new Date(year, month, index + 1);
+            daysLocal.push({
+                name: `${index + 1}`,
+                enabled: true,
+                date: thisDate,
+            });
         }
 
         days = daysLocal;
     }
 
     $: month, year, initMonth();
-    console.log(days);
 </script>
 
 <div class="console">
@@ -55,9 +58,9 @@
     <h1>{monthNames[month]} {year}</h1>
     <button on:click={() => (month = (month - 1 + 12) % 12)}>&gt;</button>
 </div>
-<div class="calender">
+<div class="calender divide-x divide-y crooked">
     {#each days as day}
-        <div class="day crooked {day.enabled ? 'enabled' : 'disabled'}">
+        <div class="day {day.enabled ? 'crooked' : ''}">
             {day.name}
         </div>
     {/each}
@@ -86,11 +89,13 @@
         justify-content: center;
         align-items: center;
         grid-template-columns: repeat(7, 1fr);
+        border: 1px solid black;
+        padding: 2rem;
     }
     .calender > .day {
         display: inline-block;
         line-height: 2rem;
-        border: 1px solid #000;
+        text-align: center;
         padding: 5px;
         min-height: 7rem;
         margin: 0.2rem;

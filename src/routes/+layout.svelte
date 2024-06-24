@@ -6,7 +6,7 @@
 <div class="app">
     <Header />
 
-    <main>
+    <main class="patrick-hand">
         <slot />
     </main>
 

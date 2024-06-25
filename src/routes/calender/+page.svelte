@@ -1,4 +1,5 @@
 <script lang="ts">
+    import Canvas from '../../components/canvas.svelte';
     import { dayNames, monthNames } from '../../utils/constants';
     import type { Day } from '../../utils/types';
 
@@ -52,7 +53,9 @@
     {#each days as day}
         <div
             class="day {day.enabled ? 'crooked' : ''} {day.date.getDate() ===
-            now.getDate()
+                now.getDate() &&
+            day.date.getMonth() === now.getMonth() &&
+            day.date.getFullYear() === now.getFullYear()
                 ? 'is-active'
                 : ''}"
         >
@@ -97,7 +100,7 @@
     }
 
     .is-active {
-        border-color: plum;
+        border-color: dodgerblue;
         border-width: 3px;
     }
 

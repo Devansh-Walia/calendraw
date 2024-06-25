@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { get } from 'svelte/store';
     import type { Day } from '../../utils/types';
 
     var dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -65,7 +66,12 @@
     {/each}
 
     {#each days as day}
-        <div class="day {day.enabled ? 'crooked' : ''}">
+        <div
+            class="day {day.enabled ? 'crooked' : ''} {day.date.getDate() ===
+            now.getDate()
+                ? 'is-active'
+                : ''}"
+        >
             {day.name}
         </div>
     {/each}
@@ -104,6 +110,11 @@
         padding: 5px;
         min-height: 7rem;
         margin: 0.2rem;
+    }
+
+    .is-active {
+        border-color: plum;
+        border-width: 3px;
     }
 
     .crooked {

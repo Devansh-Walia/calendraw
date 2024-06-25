@@ -59,7 +59,8 @@
                 ? 'is-active'
                 : ''}"
         >
-            {day.name}
+            <span class="caption"> {day.name}</span>
+            <Canvas />
         </div>
     {/each}
 </div>
@@ -95,10 +96,20 @@
         line-height: 2rem;
         text-align: center;
         padding: 5px;
-        min-height: 7rem;
+        max-height: 7rem;
         margin: 0.2rem;
+        overflow: hidden;
+        position: relative;
     }
 
+    .caption {
+        text-align: center;
+        z-index: -1;
+        position: absolute;
+        width: 100%;
+        pointer-events: none;
+        user-select: none;
+    }
     .is-active {
         border-color: dodgerblue;
         border-width: 3px;

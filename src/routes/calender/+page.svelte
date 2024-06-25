@@ -1,22 +1,6 @@
 <script lang="ts">
-    import { get } from 'svelte/store';
+    import { dayNames, monthNames } from '../../utils/constants';
     import type { Day } from '../../utils/types';
-
-    var dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    let monthNames = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
-    ];
 
     let now = new Date();
     let year = now.getFullYear();

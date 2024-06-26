@@ -46,9 +46,9 @@
 </script>
 
 <div class="console">
-    <button on:click={() => (month = (month + 1) % 12)}>&lt;</button>
+    <button on:click={() => (month = (month - 1) % 12)}>&lt;</button>
     <h1>{monthNames[month]} {year}</h1>
-    <button on:click={() => (month = (month - 1 + 12) % 12)}>&gt;</button>
+    <button on:click={() => (month = (month + 1 + 12) % 12)}>&gt;</button>
 </div>
 <div class="calendar divide-x divide-y crooked">
     {#each dayNames as dayName}

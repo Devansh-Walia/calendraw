@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
 
-    export let color = 'black';
-    export let background = 'white';
+    export let color: string;
+    export let background = 'none';
 
     let width: number;
     let height: number;
@@ -20,6 +20,8 @@
         } else {
             isDrawing = true;
             start = { x, y };
+            context.beginPath();
+            context.moveTo(x, y);
         }
     };
 
@@ -30,8 +32,6 @@
     const handleMove = (x: number, y: number) => {
         if (!context || !isDrawing) return;
 
-        context.beginPath();
-        context.moveTo(start.x, start.y);
         context.lineTo(x, y);
         context.stroke();
 
@@ -60,38 +60,57 @@
         handleMove(touch.clientX - left, touch.clientY - top);
     };
 
+    const setStroke = () => {
+        if (context) {
+            context.strokeStyle = color;
+        }
+    };
+
+    onMount(() => {
+        if (canvas) {
+            context = canvas.getContext('2d');
+            if (context) {
+                context.strokeStyle = color;
+                context.lineWidth = 2;
+            }
+
+            const rect = canvas.parentElement?.getBoundingClientRect();
+            height = rect?.height || 0;
+            width = rect?.width || 0;
+
+            setStroke();
+        }
+    });
+
+    onDestroy(() => {
+        if (canvas) {
+            canvas.removeEventListener('mousedown', handleMouseStart);
+            canvas.removeEventListener('touchstart', handleTouchStart);
+            canvas.removeEventListener('mousemove', handleMouseMove);
+            canvas.removeEventListener('touchmove', handleTouchMove);
+            canvas.removeEventListener('mouseup', handleEnd);
+            canvas.removeEventListener('touchend', handleEnd);
+            canvas.removeEventListener('mouseleave', handleEnd);
+        }
+    });
+
+    $: color, background, setStroke();
+
     const onContextSave = () => {
         if (!canvas) return;
         const data = canvas.toDataURL();
+        // Save the data to localStorage or perform other actions
     };
 
     const onContextLoad = (data: string) => {
         if (!canvas) return;
-        const img = new Image(canvas.height, canvas.width);
+        const img = new Image();
         img.onload = () => {
             if (!context) return;
             context.drawImage(img, 0, 0);
         };
         img.src = data;
     };
-
-    onMount(() => {
-        if (canvas) {
-            context = canvas.getContext('2d');
-
-            const donRect = canvas.parentElement?.getBoundingClientRect();
-            height = donRect?.height || 0;
-            width = donRect?.width || 0;
-
-            if (context) {
-                context.strokeStyle = color;
-            }
-        }
-    });
-
-    $: if (context) {
-        context.strokeStyle = color;
-    }
 </script>
 
 <canvas

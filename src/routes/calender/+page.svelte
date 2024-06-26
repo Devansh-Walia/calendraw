@@ -1,6 +1,7 @@
 <script lang="ts">
     import Canvas from '../../components/canvas.svelte';
-    import { dayNames, monthNames } from '../../utils/constants';
+    import Palette from '../../components/palette.svelte';
+    import { colors, dayNames, monthNames } from '../../utils/constants';
     import type { Day } from '../../utils/types';
 
     let now = new Date();
@@ -8,6 +9,11 @@
     let month = now.getMonth();
 
     var days: Day[] = [];
+
+    const background = 'none';
+
+    let color = colors[0];
+    const paletteColor = color;
 
     function initMonth() {
         let daysLocal: Day[] = [];
@@ -44,10 +50,9 @@
     <h1>{monthNames[month]} {year}</h1>
     <button on:click={() => (month = (month - 1 + 12) % 12)}>&gt;</button>
 </div>
-<div class="calender divide-x divide-y crooked">
-    {#each dayNames as dayName}<div class="patrick-hand text-center title">
-            {dayName}
-        </div>
+<div class="calendar divide-x divide-y crooked">
+    {#each dayNames as dayName}
+        <div class="patrick-hand text-center title">{dayName}</div>
     {/each}
 
     {#each days as day}
@@ -60,10 +65,18 @@
                 : ''}"
         >
             <span class="caption"> {day.name}</span>
-            <Canvas background="none" />
+            <Canvas {color} {background} />
         </div>
     {/each}
 </div>
+
+<Palette
+    {paletteColor}
+    {background}
+    on:color={({ detail }) => {
+        color = detail.color;
+    }}
+/>
 
 <style>
     .console {
@@ -83,7 +96,7 @@
     .console > h1 {
         width: 20rem;
     }
-    .calender {
+    .calendar {
         display: grid;
         justify-content: center;
         align-items: center;
@@ -91,7 +104,7 @@
         border: 1px solid black;
         padding: 2rem;
     }
-    .calender > .day {
+    .calendar > .day {
         display: inline-block;
         line-height: 2rem;
         text-align: center;

@@ -60,7 +60,7 @@
                 : ''}"
         >
             <span class="caption"> {day.name}</span>
-            <Canvas />
+            <Canvas background="none" />
         </div>
     {/each}
 </div>
@@ -97,8 +97,8 @@
         text-align: center;
         padding: 5px;
         max-height: 7rem;
+        max-width: 7rem;
         margin: 0.2rem;
-        overflow: hidden;
         position: relative;
     }
 

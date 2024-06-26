@@ -1,9 +1,11 @@
 <script lang="ts">
     import { onMount } from 'svelte';
 
-    export let className = 'background-color: none';
     export let color = 'black';
     export let background = 'white';
+
+    let width: number;
+    let height: number;
 
     let canvas: HTMLCanvasElement | null = null;
     let context: CanvasRenderingContext2D | null = null;
@@ -58,9 +60,29 @@
         handleMove(touch.clientX - left, touch.clientY - top);
     };
 
+    const onContextSave = () => {
+        if (!canvas) return;
+        const data = canvas.toDataURL();
+    };
+
+    const onContextLoad = (data: string) => {
+        if (!canvas) return;
+        const img = new Image(canvas.height, canvas.width);
+        img.onload = () => {
+            if (!context) return;
+            context.drawImage(img, 0, 0);
+        };
+        img.src = data;
+    };
+
     onMount(() => {
         if (canvas) {
             context = canvas.getContext('2d');
+
+            const donRect = canvas.parentElement?.getBoundingClientRect();
+            height = donRect?.height || 0;
+            width = donRect?.width || 0;
+
             if (context) {
                 context.strokeStyle = color;
             }
@@ -73,7 +95,9 @@
 </script>
 
 <canvas
-    class={className}
+    {width}
+    {height}
+    style={`background: ${background};`}
     bind:this={canvas}
     on:mousedown={handleMouseStart}
     on:touchstart={handleTouchStart}

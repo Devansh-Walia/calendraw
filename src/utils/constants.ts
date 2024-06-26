@@ -13,3 +13,5 @@ export const monthNames = [
     'November',
     'December',
 ];
+
+export let colors = ['#d58141', '#d7c44c', '#4fa9cc', '#3f8d27'];

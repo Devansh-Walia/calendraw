@@ -94,8 +94,6 @@
     };
 
     onMount(() => {
-        // console.log(canvasId, 'mounted');
-
         if (canvas) {
             context = canvas.getContext('2d');
             if (context) {
@@ -121,7 +119,6 @@
     });
 
     onDestroy(() => {
-        console.log(canvasId, 'destroyed');
         if (canvas) {
             canvas.removeEventListener('mousedown', handleMouseStart);
             canvas.removeEventListener('touchstart', handleTouchStart);

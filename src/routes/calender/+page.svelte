@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import Canvas from '../../components/canvas.svelte';
     import Palette from '../../components/palette.svelte';
     import { colors, dayNames, monthNames } from '../../utils/constants';
@@ -7,6 +8,15 @@
     let now = new Date();
     let year = now.getFullYear();
     let month = now.getMonth();
+
+    let canvasState: {
+        [key: string]: string;
+    } = {};
+
+    function handleCanvasChange(canvasId: string, state: string) {
+        canvasState[canvasId] = state;
+        localStorage.setItem('canvas', JSON.stringify(canvasState));
+    }
 
     var days: Day[] = [];
 
@@ -17,9 +27,7 @@
 
     function initMonth() {
         let daysLocal: Day[] = [];
-
         var daysInThisMonth = new Date(year, month + 1, 0).getDate();
-
         var firstDay = new Date(year, month, 1).getDay();
 
         for (let index = 0; index < firstDay; index++) {
@@ -27,12 +35,16 @@
                 name: '',
                 enabled: false,
                 date: new Date(year, month, 0),
+                id: Math.random().toString(),
             });
         }
 
         for (let index = 0; index < daysInThisMonth; index++) {
             let thisDate = new Date(year, month, index + 1);
+            let id = `${year}-${month}-${thisDate.getDate()}`;
+
             daysLocal.push({
+                id,
                 name: `${index + 1}`,
                 enabled: true,
                 date: thisDate,
@@ -42,30 +54,64 @@
         days = daysLocal;
     }
 
+    onMount(async () => {
+        const localState = localStorage.getItem('canvas');
+        if (localState) {
+            canvasState = await JSON.parse(localState);
+        }
+        initMonth();
+    });
+
     $: month, year, initMonth();
 </script>
 
 <div class="console">
-    <button on:click={() => (month = (month - 1) % 12)}>&lt;</button>
+    <button
+        on:click={() => {
+            if (month === 0) {
+                month = 11;
+                year -= 1;
+            } else {
+                month = (month - 1 + 12) % 12;
+            }
+        }}>&lt;</button
+    >
     <h1>{monthNames[month]} {year}</h1>
-    <button on:click={() => (month = (month + 1 + 12) % 12)}>&gt;</button>
+    <button
+        on:click={() => {
+            if (month === 11) {
+                month = 0;
+                year += 1;
+            } else {
+                month = (month + 1) % 12;
+            }
+        }}>&gt;</button
+    >
 </div>
+
 <div class="calendar divide-x divide-y crooked">
     {#each dayNames as dayName}
         <div class="patrick-hand text-center title">{dayName}</div>
     {/each}
 
     {#each days as day}
+        {@const { date, enabled, name, id } = day}
+        {@const isToday =
+            date.getDate() === now.getDate() &&
+            date.getMonth() === now.getMonth() &&
+            date.getFullYear() === now.getFullYear()}
+
         <div
-            class="day {day.enabled ? 'crooked' : ''} {day.date.getDate() ===
-                now.getDate() &&
-            day.date.getMonth() === now.getMonth() &&
-            day.date.getFullYear() === now.getFullYear()
-                ? 'is-active'
-                : ''}"
+            class="day {enabled ? 'crooked' : ''} {isToday ? 'is-active' : ''}"
         >
-            <span class="caption"> {day.name}</span>
-            <Canvas {color} {background} />
+            <span class="caption">{name}</span>
+            <Canvas
+                canvasId={id ?? ''}
+                {color}
+                {background}
+                {handleCanvasChange}
+                savedDataURL={canvasState[id] ?? ''}
+            />
         </div>
     {/each}
 </div>

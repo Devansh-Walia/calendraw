@@ -3,6 +3,9 @@
 
     export let color: string;
     export let background = 'none';
+    export let canvasId: string;
+    export let handleCanvasChange: (key: string, value: string) => void;
+    export let savedDataURL: string;
 
     let width: number;
     let height: number;
@@ -11,6 +14,7 @@
     let context: CanvasRenderingContext2D | null = null;
     let start: { x: number; y: number } = { x: 0, y: 0 };
     let isDrawing = false;
+    let wasChanged = false;
 
     const handleStart = (x: number, y: number) => {
         if (!context || !canvas) return;
@@ -22,11 +26,22 @@
             start = { x, y };
             context.beginPath();
             context.moveTo(x, y);
+            wasChanged = true;
         }
     };
 
     const handleEnd = () => {
         isDrawing = false;
+    };
+
+    const handleMouseLeave = () => {
+        handleEnd();
+
+        if (wasChanged && canvas) {
+            const dataURL = canvas.toDataURL('image/png');
+            handleCanvasChange(canvasId, dataURL);
+            wasChanged = false;
+        }
     };
 
     const handleMove = (x: number, y: number) => {
@@ -66,6 +81,17 @@
         }
     };
 
+    const loadCanvasState = () => {
+        if (savedDataURL) {
+            const img = new Image();
+            img.src = savedDataURL;
+            img.onload = () => {
+                if (!context) return;
+                context.drawImage(img, 0, 0);
+            };
+        }
+    };
+
     onMount(() => {
         if (canvas) {
             context = canvas.getContext('2d');
@@ -79,6 +105,15 @@
             width = rect?.width || 0;
 
             setStroke();
+            loadCanvasState();
+
+            canvas.addEventListener('mousedown', handleMouseStart);
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('mouseup', handleEnd);
+            canvas.addEventListener('touchend', handleEnd);
+            canvas.addEventListener('mouseleave', handleMouseLeave);
         }
     });
 
@@ -90,27 +125,16 @@
             canvas.removeEventListener('touchmove', handleTouchMove);
             canvas.removeEventListener('mouseup', handleEnd);
             canvas.removeEventListener('touchend', handleEnd);
-            canvas.removeEventListener('mouseleave', handleEnd);
+            canvas.removeEventListener('mouseleave', handleMouseLeave);
+
+            if (context) {
+                context.clearRect(0, 0, canvas.width, canvas.height);
+            }
         }
     });
 
     $: color, background, setStroke();
-
-    const onContextSave = () => {
-        if (!canvas) return;
-        const data = canvas.toDataURL();
-        // Save the data to localStorage or perform other actions
-    };
-
-    const onContextLoad = (data: string) => {
-        if (!canvas) return;
-        const img = new Image();
-        img.onload = () => {
-            if (!context) return;
-            context.drawImage(img, 0, 0);
-        };
-        img.src = data;
-    };
+    $: savedDataURL, loadCanvasState();
 </script>
 
 <canvas
@@ -118,11 +142,4 @@
     {height}
     style={`background: ${background};`}
     bind:this={canvas}
-    on:mousedown={handleMouseStart}
-    on:touchstart={handleTouchStart}
-    on:mouseup={handleEnd}
-    on:touchend={handleEnd}
-    on:mouseleave={handleEnd}
-    on:mousemove={handleMouseMove}
-    on:touchmove={handleTouchMove}
 />

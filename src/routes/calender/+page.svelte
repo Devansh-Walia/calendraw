@@ -1,32 +1,30 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+
     import Canvas from '../../components/canvas.svelte';
     import Palette from '../../components/palette.svelte';
-    import { colors, dayNames, monthNames } from '../../utils/constants';
-    import type { Day } from '../../utils/types';
+    import {
+        CANVAS_KEY,
+        colors,
+        dayNames,
+        monthNames,
+    } from '../../utils/constants';
+    import type { CanvasData, Day } from '../../utils/types';
+    import { getLocalStorage, setLocalStorage } from '../../utils/helpers';
 
     let now = new Date();
     let year = now.getFullYear();
     let month = now.getMonth();
 
-    let canvasState: {
-        [key: string]: string;
-    } = {};
+    let canvasState: CanvasData = {};
 
-    function handleCanvasChange(canvasId: string, state: string) {
-        canvasState[canvasId] = state;
-        localStorage.setItem('canvas', JSON.stringify(canvasState));
-    }
-
-    var days: Day[] = [];
-
-    const background = 'none';
-
-    let color = colors[0];
-    const paletteColor = color;
+    let days: Day[] = [];
+    let background = 'none';
+    let paletteColor = colors[0];
 
     function initMonth() {
-        let daysLocal: Day[] = [];
+        const daysLocal: Day[] = [];
+
         var daysInThisMonth = new Date(year, month + 1, 0).getDate();
         var firstDay = new Date(year, month, 1).getDay();
 
@@ -55,39 +53,42 @@
         days = daysLocal;
     }
 
-    onMount(async () => {
-        const localState = localStorage.getItem('canvas');
-        if (localState) {
-            canvasState = await JSON.parse(localState);
+    const decreaseMonth = () => {
+        if (month === 0) {
+            month = 11;
+            year -= 1;
+        } else {
+            month = (month - 1 + 12) % 12;
         }
-        initMonth();
-    });
+    };
+
+    const increaseMonth = () => {
+        if (month === 11) {
+            month = 0;
+            year += 1;
+        } else {
+            month = (month + 1) % 12;
+        }
+    };
+
+    function handleCanvasChange(canvasId: string, state: string) {
+        canvasState[canvasId] = state;
+        setLocalStorage(CANVAS_KEY, canvasState);
+    }
 
     $: month, year, initMonth();
+
+    onMount(async () => {
+        canvasState = await getLocalStorage(CANVAS_KEY);
+
+        initMonth();
+    });
 </script>
 
 <div class="console">
-    <button
-        on:click={() => {
-            if (month === 0) {
-                month = 11;
-                year -= 1;
-            } else {
-                month = (month - 1 + 12) % 12;
-            }
-        }}>&lt;</button
-    >
+    <button on:click={decreaseMonth}>&lt;</button>
     <h1>{monthNames[month]} {year}</h1>
-    <button
-        on:click={() => {
-            if (month === 11) {
-                month = 0;
-                year += 1;
-            } else {
-                month = (month + 1) % 12;
-            }
-        }}>&gt;</button
-    >
+    <button on:click={increaseMonth}>&gt;</button>
 </div>
 
 <div class="calendar divide-x divide-y crooked">
@@ -111,7 +112,7 @@
                 <span class="caption">{name}</span>
                 <Canvas
                     canvasId={id ?? ''}
-                    {color}
+                    {paletteColor}
                     {background}
                     {handleCanvasChange}
                     savedDataURL={state ?? ''}
@@ -125,7 +126,7 @@
     {paletteColor}
     {background}
     on:color={({ detail }) => {
-        color = detail.color;
+        paletteColor = detail.color;
     }}
 />
 

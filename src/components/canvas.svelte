@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
 
-    export let color: string;
+    export let paletteColor: string;
     export let background = 'none';
     export let canvasId: string;
     export let handleCanvasChange: (key: string, value: string) => void;
@@ -19,15 +19,15 @@
     const handleStart = (x: number, y: number) => {
         if (!context || !canvas) return;
 
-        if (color === background) {
+        if (paletteColor === background) {
             context.clearRect(0, 0, canvas.width, canvas.height);
         } else {
             isDrawing = true;
             start = { x, y };
             context.beginPath();
             context.moveTo(x, y);
-            wasChanged = true;
         }
+        wasChanged = true;
     };
 
     const handleEnd = () => {
@@ -77,7 +77,7 @@
 
     const setStroke = () => {
         if (context) {
-            context.strokeStyle = color;
+            context.strokeStyle = paletteColor;
         }
     };
 
@@ -97,7 +97,7 @@
         if (canvas) {
             context = canvas.getContext('2d');
             if (context) {
-                context.strokeStyle = color;
+                context.strokeStyle = paletteColor;
                 context.lineWidth = 2;
             }
 
@@ -134,7 +134,7 @@
         }
     });
 
-    $: color, background, setStroke();
+    $: paletteColor, background, setStroke();
     $: savedDataURL, loadCanvasState();
 </script>
 

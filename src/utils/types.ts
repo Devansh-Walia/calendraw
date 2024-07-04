@@ -5,3 +5,7 @@ export interface Day {
     id: string;
     state?: string;
 }
+
+export interface CanvasData {
+    [key: string]: string;
+}

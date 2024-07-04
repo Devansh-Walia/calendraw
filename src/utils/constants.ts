@@ -14,4 +14,8 @@ export const monthNames = [
     'December',
 ];
 
-export let colors = ['#100100', '#d58141', '#d7c44c', '#4fa9cc', '#3f8d27'];
+export const colors = ['#100100', '#d58141', '#d7c44c', '#4fa9cc', '#3f8d27'];
+
+export const CANVAS_KEY = 'canvas';
+
+export const CUSTOM_COLOR_EVENT = 'color';

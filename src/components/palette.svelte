@@ -1,22 +1,28 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
 
-    import { colors } from '../utils/constants';
-
-    const dispatch = createEventDispatcher();
+    import { colors, CUSTOM_COLOR_EVENT } from '../utils/constants';
 
     export let paletteColor = colors[0];
     export let background = 'none';
+
+    const dispatch = createEventDispatcher();
+
+    const handleColorClick = (color: string) => {
+        dispatch(CUSTOM_COLOR_EVENT, { color });
+        paletteColor = color;
+    };
+    const handleEraserClick = () => {
+        dispatch(CUSTOM_COLOR_EVENT, { color: background });
+        paletteColor = background;
+    };
 </script>
 
 <section>
     <div class="flex-row">
         {#each colors as color}
             <button
-                on:click={() => {
-                    dispatch('color', { color });
-                    paletteColor = color;
-                }}
+                on:click={() => handleColorClick(color)}
                 style:background={color}
             >
                 <span class="visually-hidden">
@@ -26,13 +32,7 @@
         {/each}
     </div>
 
-    <button
-        on:click={() => {
-            dispatch('color', { color: background });
-            paletteColor = background;
-        }}
-        style:background
-    >
+    <button on:click={handleEraserClick} style:background>
         <span class="visually-hidden">
             Select the background color to clear the canvas
         </span>

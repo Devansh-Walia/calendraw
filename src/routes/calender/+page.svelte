@@ -48,6 +48,7 @@
                 name: `${index + 1}`,
                 enabled: true,
                 date: thisDate,
+                state: canvasState[id],
             });
         }
 
@@ -95,24 +96,28 @@
     {/each}
 
     {#each days as day}
-        {@const { date, enabled, name, id } = day}
+        {@const { date, enabled, name, id, state } = day}
         {@const isToday =
             date.getDate() === now.getDate() &&
             date.getMonth() === now.getMonth() &&
             date.getFullYear() === now.getFullYear()}
 
-        <div
-            class="day {enabled ? 'crooked' : ''} {isToday ? 'is-active' : ''}"
-        >
-            <span class="caption">{name}</span>
-            <Canvas
-                canvasId={id ?? ''}
-                {color}
-                {background}
-                {handleCanvasChange}
-                savedDataURL={canvasState[id] ?? ''}
-            />
-        </div>
+        {#key id}
+            <div
+                class="day {enabled ? 'crooked' : ''} {isToday
+                    ? 'is-active'
+                    : ''}"
+            >
+                <span class="caption">{name}</span>
+                <Canvas
+                    canvasId={id ?? ''}
+                    {color}
+                    {background}
+                    {handleCanvasChange}
+                    savedDataURL={state ?? ''}
+                />
+            </div>
+        {/key}
     {/each}
 </div>
 

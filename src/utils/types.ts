@@ -3,4 +3,5 @@ export interface Day {
     enabled: boolean;
     date: Date;
     id: string;
+    state?: string;
 }

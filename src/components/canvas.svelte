@@ -82,9 +82,10 @@
     };
 
     const loadCanvasState = () => {
-        if (savedDataURL) {
+        if (savedDataURL != '') {
             const img = new Image();
             img.src = savedDataURL;
+
             img.onload = () => {
                 if (!context) return;
                 context.drawImage(img, 0, 0);
@@ -93,6 +94,8 @@
     };
 
     onMount(() => {
+        // console.log(canvasId, 'mounted');
+
         if (canvas) {
             context = canvas.getContext('2d');
             if (context) {
@@ -118,6 +121,7 @@
     });
 
     onDestroy(() => {
+        console.log(canvasId, 'destroyed');
         if (canvas) {
             canvas.removeEventListener('mousedown', handleMouseStart);
             canvas.removeEventListener('touchstart', handleTouchStart);

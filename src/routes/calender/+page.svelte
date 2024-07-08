@@ -8,6 +8,7 @@
         colors,
         dayNames,
         monthNames,
+        TOOLS,
     } from '../../utils/constants';
     import type { CanvasData, Day } from '../../utils/types';
     import { getLocalStorage, setLocalStorage } from '../../utils/helpers';
@@ -17,6 +18,12 @@
     let month = now.getMonth();
 
     let canvasState: CanvasData = {};
+
+    let toolType = TOOLS.PEN;
+
+    const changeTool = (tool: TOOLS) => {
+        toolType = tool;
+    };
 
     let days: Day[] = [];
     let background = 'none';
@@ -111,6 +118,7 @@
             >
                 <span class="caption">{name}</span>
                 <Canvas
+                    {toolType}
                     canvasId={id ?? ''}
                     {paletteColor}
                     {background}
@@ -125,6 +133,7 @@
 <Palette
     {paletteColor}
     {background}
+    {changeTool}
     on:color={({ detail }) => {
         paletteColor = detail.color;
     }}

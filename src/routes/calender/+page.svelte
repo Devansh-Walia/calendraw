@@ -134,6 +134,7 @@
     {paletteColor}
     {background}
     {changeTool}
+    {toolType}
     on:color={({ detail }) => {
         paletteColor = detail.color;
     }}

@@ -7,12 +7,15 @@
     export let paletteColor = colors[0];
     export let background = 'none';
     export let changeTool: (tool: TOOLS) => void;
+    export let toolType: TOOLS;
 
     let isColorsPanelOpen = false;
 
     const toggleColorsPanel = () => {
         isColorsPanelOpen = !isColorsPanelOpen;
     };
+
+    console.log(toolType, 'tooltype');
 
     const dispatch = createEventDispatcher();
 
@@ -35,7 +38,12 @@
 
 <section>
     <Tooltip text="reset your mistakes!!" delay={300}>
-        <button on:click={handleEraserClick} style:background title="Eraser">
+        <button
+            on:click={handleEraserClick}
+            class={toolType === TOOLS.ERASER ? 'active' : ''}
+            style:background
+            title="Eraser"
+        >
             <span class="visually-hidden">
                 Select the background color to clear the canvas
             </span>
@@ -44,7 +52,11 @@
 
     <Tooltip text="Choose a color to make the mistake..." delay={300}>
         <div class="color-panel">
-            <button on:click={toggleColorsPanel} title="Choose Color">
+            <button
+                on:click={toggleColorsPanel}
+                class={toolType === TOOLS.PEN ? 'active' : ''}
+                title="Choose Color"
+            >
                 <svg
                     style:color={paletteColor}
                     id="drop"
@@ -113,6 +125,10 @@
         gap: 0 0.5rem;
         align-items: center;
         overflow-x: auto;
+    }
+
+    .active {
+        border: 2px solid dodgerblue;
     }
 
     div button {

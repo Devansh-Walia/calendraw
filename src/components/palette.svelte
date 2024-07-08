@@ -42,7 +42,6 @@
             on:click={handleEraserClick}
             class={toolType === TOOLS.ERASER ? 'active' : ''}
             style:background
-            title="Eraser"
         >
             <span class="visually-hidden">
                 Select the background color to clear the canvas
@@ -55,7 +54,6 @@
             <button
                 on:click={toggleColorsPanel}
                 class={toolType === TOOLS.PEN ? 'active' : ''}
-                title="Choose Color"
             >
                 <svg
                     style:color={paletteColor}

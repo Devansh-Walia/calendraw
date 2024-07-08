@@ -1,55 +1,74 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
 
-    import { colors, CUSTOM_COLOR_EVENT } from '../utils/constants';
+    import { colors, CUSTOM_COLOR_EVENT, TOOLS } from '../utils/constants';
 
     export let paletteColor = colors[0];
     export let background = 'none';
+    export let changeTool: (tool: TOOLS) => void;
+
+    let isColorsPanelOpen = false;
+
+    const toggleColorsPanel = () => {
+        isColorsPanelOpen = !isColorsPanelOpen;
+    };
 
     const dispatch = createEventDispatcher();
 
     const handleColorClick = (color: string) => {
         dispatch(CUSTOM_COLOR_EVENT, { color });
         paletteColor = color;
+
+        toggleColorsPanel();
+
+        changeTool(TOOLS.PEN);
     };
+
     const handleEraserClick = () => {
         dispatch(CUSTOM_COLOR_EVENT, { color: background });
         paletteColor = background;
+
+        changeTool(TOOLS.ERASER);
     };
 </script>
 
 <section>
-    <div class="flex-row">
-        {#each colors as color}
-            <button
-                on:click={() => handleColorClick(color)}
-                style:background={color}
-            >
-                <span class="visually-hidden">
-                    Select the color {color}
-                </span>
-            </button>
-        {/each}
-    </div>
-
     <button on:click={handleEraserClick} style:background>
         <span class="visually-hidden">
             Select the background color to clear the canvas
         </span>
     </button>
 
-    <svg style:color={paletteColor} viewBox="-50 -50 100 100">
-        <g
-            fill="currentColor"
-            stroke="currentColor"
-            stroke-width="0"
-            stroke-linecap="round"
-        >
-            <path
-                d="M -38 12 a 38 38 0 0 0 76 0 q 0 -28 -38 -62 -38 34 -38 62"
-            />
-        </g>
-    </svg>
+    <div class="color-panel">
+        <button on:click={toggleColorsPanel}>
+            <svg style:color={paletteColor} id="drop" viewBox="-50 -50 100 100">
+                <g
+                    fill="currentColor"
+                    stroke="currentColor"
+                    stroke-width="0"
+                    stroke-linecap="round"
+                >
+                    <path
+                        d="M -38 12 a 38 38 0 0 0 76 0 q 0 -28 -38 -62 -38 34 -38 62"
+                    />
+                </g>
+            </svg>
+        </button>
+        {#if isColorsPanelOpen}
+            <div class="flex-row">
+                {#each colors as color}
+                    <button
+                        on:click={() => handleColorClick(color)}
+                        style:background={color}
+                    >
+                        <span class="visually-hidden">
+                            Select the color {color}
+                        </span>
+                    </button>
+                {/each}
+            </div>
+        {/if}
+    </div>
 </section>
 
 <style>
@@ -57,12 +76,14 @@
         --size: 1.75rem;
         padding: 0.25rem;
         display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 0 1rem;
+        flex-direction: column;
+        gap: 1rem;
+        position: fixed;
+        bottom: 2rem;
+        left: 1rem;
     }
 
-    section > .flex-row {
+    .flex-row {
         display: flex;
         flex-direction: row;
         gap: 0.5rem;
@@ -72,7 +93,7 @@
         flex-grow: 1;
     }
 
-    section > svg {
+    svg {
         flex-shrink: 0;
     }
 
@@ -83,24 +104,11 @@
         overflow-x: auto;
     }
 
-    div::-webkit-scrollbar {
-        height: 0.25rem;
-    }
-
-    div::-webkit-scrollbar-track {
-        background: hsl(0, 0%, 100%);
-    }
-
-    div::-webkit-scrollbar-thumb {
-        background: currentColor;
-    }
-
     div button {
         flex-shrink: 0;
     }
 
-    button,
-    section > svg {
+    button {
         width: var(--size);
         height: var(--size);
     }
@@ -109,9 +117,5 @@
         cursor: pointer;
         border-radius: 50%;
         margin: 0;
-    }
-
-    section > svg {
-        display: block;
     }
 </style>

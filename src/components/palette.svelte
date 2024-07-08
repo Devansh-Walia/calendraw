@@ -2,6 +2,7 @@
     import { createEventDispatcher } from 'svelte';
 
     import { colors, CUSTOM_COLOR_EVENT, TOOLS } from '../utils/constants';
+    import Tooltip from './tooltip.svelte';
 
     export let paletteColor = colors[0];
     export let background = 'none';
@@ -33,42 +34,52 @@
 </script>
 
 <section>
-    <button on:click={handleEraserClick} style:background>
-        <span class="visually-hidden">
-            Select the background color to clear the canvas
-        </span>
-    </button>
-
-    <div class="color-panel">
-        <button on:click={toggleColorsPanel}>
-            <svg style:color={paletteColor} id="drop" viewBox="-50 -50 100 100">
-                <g
-                    fill="currentColor"
-                    stroke="currentColor"
-                    stroke-width="0"
-                    stroke-linecap="round"
-                >
-                    <path
-                        d="M -38 12 a 38 38 0 0 0 76 0 q 0 -28 -38 -62 -38 34 -38 62"
-                    />
-                </g>
-            </svg>
+    <Tooltip text="reset your mistakes!!" delay={300}>
+        <button on:click={handleEraserClick} style:background title="Eraser">
+            <span class="visually-hidden">
+                Select the background color to clear the canvas
+            </span>
         </button>
-        {#if isColorsPanelOpen}
-            <div class="flex-row">
-                {#each colors as color}
-                    <button
-                        on:click={() => handleColorClick(color)}
-                        style:background={color}
+    </Tooltip>
+
+    <Tooltip text="Choose a color to make the mistake..." delay={300}>
+        <div class="color-panel">
+            <button on:click={toggleColorsPanel} title="Choose Color">
+                <svg
+                    style:color={paletteColor}
+                    id="drop"
+                    viewBox="-50 -50 100 100"
+                >
+                    <g
+                        fill="currentColor"
+                        stroke="currentColor"
+                        stroke-width="0"
+                        stroke-linecap="round"
                     >
-                        <span class="visually-hidden">
-                            Select the color {color}
-                        </span>
-                    </button>
-                {/each}
-            </div>
-        {/if}
-    </div>
+                        <path
+                            d="M -38 12 a 38 38 0 0 0 76 0 q 0 -28 -38 -62 -38 34 -38 62"
+                        />
+                    </g>
+                </svg>
+            </button>
+
+            {#if isColorsPanelOpen}
+                <div class="flex-row">
+                    {#each colors as color}
+                        <button
+                            on:click={() => handleColorClick(color)}
+                            style:background={color}
+                            title={`Select ${color}`}
+                        >
+                            <span class="visually-hidden">
+                                Select the color {color}
+                            </span>
+                        </button>
+                    {/each}
+                </div>
+            {/if}
+        </div>
+    </Tooltip>
 </section>
 
 <style>

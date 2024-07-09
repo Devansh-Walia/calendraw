@@ -12,10 +12,12 @@
     let isColorsPanelOpen = false;
 
     const toggleColorsPanel = () => {
-        isColorsPanelOpen = !isColorsPanelOpen;
+        if (toolType === TOOLS.ERASER) {
+            changeTool(TOOLS.PEN);
+        } else {
+            isColorsPanelOpen = !isColorsPanelOpen;
+        }
     };
-
-    console.log(toolType, 'tooltype');
 
     const dispatch = createEventDispatcher();
 

@@ -1,13 +1,14 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
+
     import { TOOLS } from '../utils/constants';
 
     export let paletteColor: string;
     export let background = 'none';
     export let canvasId: string;
-    export let handleCanvasChange: (key: string, value: string) => void;
     export let savedDataURL: string;
     export let toolType: TOOLS;
+    export let handleCanvasChange: (key: string, value: string) => void;
 
     let width: number;
     let height: number;
@@ -17,7 +18,6 @@
     let start: { x: number; y: number } = { x: 0, y: 0 };
     let isDrawing = false;
     let wasChanged = false;
-    let toolCursor = 'crosshair';
 
     const handleStart = (x: number, y: number) => {
         if (!context || !canvas) return;
@@ -137,18 +137,6 @@
         }
     });
 
-    const changeToolCursor = () => {
-        switch (toolType) {
-            case TOOLS.PEN:
-                return 'crosshair';
-            case TOOLS.ERASER:
-                return 'cell';
-            default:
-                return 'crosshair';
-        }
-    };
-
-    $: toolType, (toolCursor = changeToolCursor());
     $: paletteColor, background, setStroke();
     $: savedDataURL, loadCanvasState();
 </script>
@@ -156,6 +144,19 @@
 <canvas
     {width}
     {height}
-    style={`background: ${background}; cursor: ${toolCursor}`}
+    class={toolType === TOOLS.ERASER ? 'cursor-eraser' : 'cursor-pen'}
+    style={`background: ${background}; color:${paletteColor}`}
     bind:this={canvas}
 />
+
+<style>
+    .cursor-eraser {
+        cursor: url('/eraser.svg'), pointer;
+    }
+
+    .cursor-pen {
+        cursor:
+            url('/pen.svg') 2 10,
+            pointer;
+    }
+</style>

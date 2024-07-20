@@ -2,6 +2,7 @@
     import { onMount, onDestroy } from 'svelte';
 
     import { TOOLS } from '../utils/constants';
+    import { get } from 'svelte/store';
 
     export let paletteColor: string;
     export let background = 'none';
@@ -19,17 +20,60 @@
     let isDrawing = false;
     let wasChanged = false;
 
+    const getToolClass = (tool: TOOLS) => {
+        switch (tool) {
+            case TOOLS.ERASER:
+                return 'cursor-eraser';
+            case TOOLS.PEN:
+                return 'cursor-pen';
+            case TOOLS.TEXT:
+                return 'cursor-text';
+            default:
+                return '';
+        }
+    };
+
     const handleStart = (x: number, y: number) => {
         if (!context || !canvas) return;
 
-        if (paletteColor === background) {
+        const handleEraserStart = (x: number, y: number) => {
+            if (!context || !canvas) return;
+
+            // context.clearRect(x, y, 10, 10); when size of eraser is added to the pallet.
             context.clearRect(0, 0, canvas.width, canvas.height);
-        } else {
+        };
+
+        const handleTextStart = (x: number, y: number) => {
+            if (!context) return;
+
+            const text = prompt('Enter your text:');
+
+            if (text) {
+                context.font = '10px Arial';
+                context.fillText(text, x, y);
+            }
+        };
+
+        const handlePenStart = (x: number, y: number) => {
+            if (!context) return;
+
             isDrawing = true;
             start = { x, y };
             context.beginPath();
             context.moveTo(x, y);
+        };
+
+        switch (toolType) {
+            case TOOLS.ERASER:
+                handleEraserStart(x, y);
+                break;
+            case TOOLS.TEXT:
+                handleTextStart(x, y);
+                break;
+            default:
+                handlePenStart(x, y);
         }
+
         wasChanged = true;
     };
 
@@ -144,7 +188,7 @@
 <canvas
     {width}
     {height}
-    class={toolType === TOOLS.ERASER ? 'cursor-eraser' : 'cursor-pen'}
+    class={getToolClass(toolType)}
     style={`background: ${background}; color:${paletteColor}`}
     bind:this={canvas}
 />
@@ -158,5 +202,9 @@
         cursor:
             url('/pen.svg') 2 10,
             pointer;
+    }
+
+    .cursor-text {
+        cursor: text;
     }
 </style>

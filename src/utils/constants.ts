@@ -23,4 +23,5 @@ export const CUSTOM_COLOR_EVENT = 'color';
 export enum TOOLS {
     PEN = 'pen',
     ERASER = 'eraser',
+    TEXT = 'text',
 }

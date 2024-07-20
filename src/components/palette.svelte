@@ -12,7 +12,7 @@
     let isColorsPanelOpen = false;
 
     const toggleColorsPanel = () => {
-        if (toolType === TOOLS.ERASER) {
+        if (toolType !== TOOLS.PEN) {
             changeTool(TOOLS.PEN);
         } else {
             isColorsPanelOpen = !isColorsPanelOpen;
@@ -39,6 +39,17 @@
 </script>
 
 <section>
+    <Tooltip text="write something down" delay={300}>
+        <button
+            on:click={() => changeTool(TOOLS.TEXT)}
+            class={toolType === TOOLS.TEXT ? 'active' : ''}
+            style:background
+        >
+            <span class="visually-hidden">
+                Select the pen tool to write on the canvas
+            </span>
+        </button>
+    </Tooltip>
     <Tooltip text="reset your mistakes!!" delay={300}>
         <button
             on:click={handleEraserClick}

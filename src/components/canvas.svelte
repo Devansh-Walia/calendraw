@@ -87,6 +87,7 @@
         if (wasChanged && canvas) {
             const dataURL = canvas.toDataURL('image/png');
             handleCanvasChange(canvasId, dataURL);
+
             wasChanged = false;
         }
     };
@@ -106,8 +107,10 @@
 
     const handleTouchStart = (event: TouchEvent) => {
         if (!canvas) return;
+
         const touch = event.touches[0];
         const { left, top } = canvas.getBoundingClientRect();
+
         handleStart(touch.clientX - left, touch.clientY - top);
     };
 
@@ -117,8 +120,10 @@
 
     const handleTouchMove = (event: TouchEvent) => {
         if (!canvas) return;
+
         const touch = event.touches[0];
         const { left, top } = canvas.getBoundingClientRect();
+
         handleMove(touch.clientX - left, touch.clientY - top);
     };
 

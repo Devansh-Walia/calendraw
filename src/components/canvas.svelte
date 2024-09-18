@@ -1,8 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
-
     import { TOOLS } from '../utils/constants';
-    import { get } from 'svelte/store';
 
     export let paletteColor: string;
     export let background = 'none';
@@ -11,190 +9,136 @@
     export let toolType: TOOLS;
     export let handleCanvasChange: (key: string, value: string) => void;
 
-    let width: number;
-    let height: number;
-
-    let canvas: HTMLCanvasElement | null = null;
-    let context: CanvasRenderingContext2D | null = null;
-    let start: { x: number; y: number } = { x: 0, y: 0 };
+    let canvas: HTMLCanvasElement;
+    let context: CanvasRenderingContext2D;
     let isDrawing = false;
     let wasChanged = false;
 
-    const getToolClass = (tool: TOOLS) => {
-        switch (tool) {
-            case TOOLS.ERASER:
-                return 'cursor-eraser';
-            case TOOLS.PEN:
-                return 'cursor-pen';
-            case TOOLS.TEXT:
-                return 'cursor-text';
-            default:
-                return '';
-        }
+    $: if (context) {
+        context.strokeStyle = paletteColor;
+        context.fillStyle = paletteColor;
+    }
+
+    $: if (savedDataURL) {
+        loadCanvasState();
+    }
+
+    const toolCursors = {
+        [TOOLS.ERASER]: 'cursor-eraser',
+        [TOOLS.PEN]: 'cursor-pen',
+        [TOOLS.TEXT]: 'cursor-text',
     };
 
-    const handleStart = (x: number, y: number) => {
-        if (!context || !canvas) return;
+    function initCanvas() {
+        if (!canvas) return;
 
-        const handleEraserStart = (x: number, y: number) => {
-            if (!context || !canvas) return;
+        context = canvas.getContext('2d')!;
+        context.lineWidth = 2;
 
-            // context.clearRect(x, y, 10, 10); when size of eraser is added to the pallet.
-            context.clearRect(0, 0, canvas.width, canvas.height);
-        };
+        const rect = canvas.parentElement?.getBoundingClientRect();
+        canvas.height = rect?.height || 0;
+        canvas.width = rect?.width || 0;
 
-        const handleTextStart = (x: number, y: number) => {
-            if (!context) return;
+        loadCanvasState();
+        addEventListeners();
+    }
 
-            const text = prompt('Enter your text:');
+    function loadCanvasState() {
+        if (!savedDataURL || !context) return;
 
-            if (text) {
-                context.font = '10px Arial';
-                context.fillText(text, x, y);
-            }
-        };
+        const img = new Image();
+        img.src = savedDataURL;
+        img.onload = () => context.drawImage(img, 0, 0);
+    }
 
-        const handlePenStart = (x: number, y: number) => {
-            if (!context) return;
+    function addEventListeners() {
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('touchstart', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        canvas.addEventListener('touchmove', handleMove);
+        canvas.addEventListener('mouseup', handleEnd);
+        canvas.addEventListener('touchend', handleEnd);
+        canvas.addEventListener('mouseleave', handleLeave);
+    }
 
-            isDrawing = true;
-            start = { x, y };
-            context.beginPath();
-            context.moveTo(x, y);
-        };
+    function removeEventListeners() {
+        canvas.removeEventListener('mousedown', handleStart);
+        canvas.removeEventListener('touchstart', handleStart);
+        canvas.removeEventListener('mousemove', handleMove);
+        canvas.removeEventListener('touchmove', handleMove);
+        canvas.removeEventListener('mouseup', handleEnd);
+        canvas.removeEventListener('touchend', handleEnd);
+        canvas.removeEventListener('mouseleave', handleLeave);
+    }
+
+    function getEventCoordinates(
+        event: MouseEvent | TouchEvent,
+    ): [number, number] {
+        const rect = canvas.getBoundingClientRect();
+        if (event instanceof MouseEvent) {
+            return [event.clientX - rect.left, event.clientY - rect.top];
+        } else {
+            const touch = event.touches[0];
+            return [touch.clientX - rect.left, touch.clientY - rect.top];
+        }
+    }
+
+    function handleStart(event: MouseEvent | TouchEvent) {
+        const [x, y] = getEventCoordinates(event);
 
         switch (toolType) {
             case TOOLS.ERASER:
-                handleEraserStart(x, y);
+                context.clearRect(0, 0, canvas.width, canvas.height);
                 break;
             case TOOLS.TEXT:
-                handleTextStart(x, y);
+                const text = prompt('Enter your text:');
+                if (text) {
+                    context.font = '16px Arial';
+                    context.fillText(text, x, y);
+                }
                 break;
             default:
-                handlePenStart(x, y);
+                isDrawing = true;
+                context.beginPath();
+                context.moveTo(x, y);
         }
 
         wasChanged = true;
-    };
+    }
 
-    const handleEnd = () => {
-        isDrawing = false;
-    };
+    function handleMove(event: MouseEvent | TouchEvent) {
+        if (!isDrawing || toolType !== TOOLS.PEN) return;
 
-    const handleMouseLeave = () => {
-        handleEnd();
-
-        if (wasChanged && canvas) {
-            const dataURL = canvas.toDataURL('image/png');
-            handleCanvasChange(canvasId, dataURL);
-
-            wasChanged = false;
-        }
-    };
-
-    const handleMove = (x: number, y: number) => {
-        if (!context || !isDrawing) return;
-
+        const [x, y] = getEventCoordinates(event);
         context.lineTo(x, y);
         context.stroke();
+    }
 
-        start = { x, y };
-    };
+    function handleEnd() {
+        isDrawing = false;
+    }
 
-    const handleMouseStart = (event: MouseEvent) => {
-        handleStart(event.offsetX, event.offsetY);
-    };
+    function handleLeave() {
+        handleEnd();
 
-    const handleTouchStart = (event: TouchEvent) => {
-        if (!canvas) return;
-
-        const touch = event.touches[0];
-        const { left, top } = canvas.getBoundingClientRect();
-
-        handleStart(touch.clientX - left, touch.clientY - top);
-    };
-
-    const handleMouseMove = (event: MouseEvent) => {
-        handleMove(event.offsetX, event.offsetY);
-    };
-
-    const handleTouchMove = (event: TouchEvent) => {
-        if (!canvas) return;
-
-        const touch = event.touches[0];
-        const { left, top } = canvas.getBoundingClientRect();
-
-        handleMove(touch.clientX - left, touch.clientY - top);
-    };
-
-    const setStroke = () => {
-        if (context) {
-            context.strokeStyle = paletteColor;
+        if (wasChanged) {
+            const dataURL = canvas.toDataURL('image/png');
+            handleCanvasChange(canvasId, dataURL);
+            wasChanged = false;
         }
-    };
+    }
 
-    const loadCanvasState = () => {
-        if (savedDataURL != '') {
-            const img = new Image();
-            img.src = savedDataURL;
-
-            img.onload = () => {
-                if (!context) return;
-                context.drawImage(img, 0, 0);
-            };
-        }
-    };
-
-    onMount(() => {
-        if (canvas) {
-            context = canvas.getContext('2d');
-            if (context) {
-                context.strokeStyle = paletteColor;
-                context.lineWidth = 2;
-            }
-
-            const rect = canvas.parentElement?.getBoundingClientRect();
-            height = rect?.height || 0;
-            width = rect?.width || 0;
-
-            setStroke();
-            loadCanvasState();
-
-            canvas.addEventListener('mousedown', handleMouseStart);
-            canvas.addEventListener('touchstart', handleTouchStart);
-            canvas.addEventListener('mousemove', handleMouseMove);
-            canvas.addEventListener('touchmove', handleTouchMove);
-            canvas.addEventListener('mouseup', handleEnd);
-            canvas.addEventListener('touchend', handleEnd);
-            canvas.addEventListener('mouseleave', handleMouseLeave);
-        }
-    });
+    onMount(initCanvas);
 
     onDestroy(() => {
-        if (canvas) {
-            canvas.removeEventListener('mousedown', handleMouseStart);
-            canvas.removeEventListener('touchstart', handleTouchStart);
-            canvas.removeEventListener('mousemove', handleMouseMove);
-            canvas.removeEventListener('touchmove', handleTouchMove);
-            canvas.removeEventListener('mouseup', handleEnd);
-            canvas.removeEventListener('touchend', handleEnd);
-            canvas.removeEventListener('mouseleave', handleMouseLeave);
-
-            if (context) {
-                context.clearRect(0, 0, canvas.width, canvas.height);
-            }
-        }
+        removeEventListeners();
+        context.clearRect(0, 0, canvas.width, canvas.height);
     });
-
-    $: paletteColor, background, setStroke();
-    $: savedDataURL, loadCanvasState();
 </script>
 
 <canvas
-    {width}
-    {height}
-    class={getToolClass(toolType)}
-    style={`background: ${background}; color:${paletteColor}`}
+    class={toolCursors[toolType] || ''}
+    style={`background: ${background}; color: ${paletteColor}`}
     bind:this={canvas}
 />
 
@@ -202,13 +146,11 @@
     .cursor-eraser {
         cursor: url('/eraser.svg'), pointer;
     }
-
     .cursor-pen {
         cursor:
             url('/pen.svg') 2 10,
             pointer;
     }
-
     .cursor-text {
         cursor: text;
     }

@@ -1,6 +1,7 @@
 <script lang="ts">
     export let text: string = '';
     export let delay: number = 500;
+    export let hidden: boolean = false;
 
     let show = false;
     let timer: ReturnType<typeof setTimeout>;
@@ -26,7 +27,7 @@
 >
     <slot></slot>
     {#if show}
-        <div class="tooltip">{text}</div>
+        <div class={hidden ? 'hidden' : 'tooltip'}>{text}</div>
     {/if}
 </div>
 
@@ -47,5 +48,8 @@
         white-space: nowrap;
         z-index: 1;
         opacity: 0.8;
+    }
+    .hidden {
+        display: none;
     }
 </style>

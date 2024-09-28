@@ -18,6 +18,19 @@
     let wasChanged = false;
     let points: { x: number; y: number }[] = [];
 
+    let textElements: {
+        text: string;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }[] = [];
+    let selectedTextElement: number | null = null;
+    let isDragging = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+    let editingText = false;
+
     $: if (context) {
         context.strokeStyle = paletteColor;
         context.fillStyle = paletteColor;
@@ -35,6 +48,7 @@
         [TOOLS.ERASER]: 'cursor-eraser',
         [TOOLS.PEN]: 'cursor-pen',
         [TOOLS.TEXT]: 'cursor-text',
+        [TOOLS.HAND]: 'cursor-hand',
     };
 
     function initCanvas(clear = false) {
@@ -71,6 +85,7 @@
         canvas.addEventListener('mouseup', handleEnd);
         canvas.addEventListener('touchend', handleEnd);
         canvas.addEventListener('mouseleave', handleLeave);
+        canvas.addEventListener('dblclick', handleDoubleClick);
     }
 
     function removeEventListeners() {
@@ -82,6 +97,7 @@
         canvas.removeEventListener('mouseup', handleEnd);
         canvas.removeEventListener('touchend', handleEnd);
         canvas.removeEventListener('mouseleave', handleLeave);
+        canvas.removeEventListener('dblclick', handleDoubleClick);
     }
 
     function getEventCoordinates(
@@ -104,10 +120,27 @@
                 context.clearRect(0, 0, canvas.width, canvas.height);
                 break;
             case TOOLS.TEXT:
-                const text = prompt('Enter your text:');
-                if (text) {
-                    context.font = '16px Arial';
-                    context.fillText(text, x, y);
+                if (!editingText) {
+                    const textWidth = context.measureText('Text').width;
+                    const textHeight = 16;
+                    textElements.push({
+                        text: 'Text',
+                        x,
+                        y,
+                        width: textWidth,
+                        height: textHeight,
+                    });
+                    drawTextElements();
+                }
+                break;
+            case TOOLS.HAND:
+                const index = selectTextElement(x, y);
+                if (index !== null) {
+                    selectedTextElement = index;
+                    isDragging = true;
+                    const textElement = textElements[index];
+                    dragOffsetX = x - textElement.x;
+                    dragOffsetY = y - textElement.y;
                 }
                 break;
             default:
@@ -121,6 +154,15 @@
     }
 
     function handleMove(event: MouseEvent | TouchEvent) {
+        if (isDragging && selectedTextElement !== null) {
+            const [x, y] = getEventCoordinates(event);
+            const textElement = textElements[selectedTextElement];
+            textElement.x = x - dragOffsetX;
+            textElement.y = y - dragOffsetY;
+            drawTextElements();
+            return;
+        }
+
         if (!isDrawing || toolType !== TOOLS.PEN) return;
 
         const [x, y] = getEventCoordinates(event);
@@ -149,6 +191,8 @@
 
     function handleEnd() {
         isDrawing = false;
+        isDragging = false;
+        selectedTextElement = null;
         points = [];
     }
 
@@ -162,10 +206,64 @@
         }
     }
 
-    onMount(() => initCanvas(false));
+    function drawTextElements() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        textElements.forEach(({ text, x, y }) => {
+            context.font = '16px Arial';
+            context.fillText(text, x, y);
+        });
+    }
+
+    function selectTextElement(x: number, y: number) {
+        for (let i = 0; i < textElements.length; i++) {
+            const { x: textX, y: textY, width, height } = textElements[i];
+            if (
+                x >= textX &&
+                x <= textX + width &&
+                y >= textY - height &&
+                y <= textY
+            ) {
+                return i;
+            }
+        }
+        return null;
+    }
+
+    function handleDoubleClick(event: MouseEvent) {
+        const [x, y] = getEventCoordinates(event);
+        const index = selectTextElement(x, y);
+        if (index !== null) {
+            selectedTextElement = index;
+            editingText = true;
+            const textElement = textElements[index];
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = textElement.text;
+            input.style.position = 'absolute';
+            input.hidden;
+            input.style.left = `${textElement.x}px`;
+            input.style.top = `${textElement.y - textElement.height}px`;
+            input.style.fontSize = '16px';
+            input.style.fontFamily = 'Arial';
+            input.onblur = () => {
+                textElement.text = input.value;
+                editingText = false;
+                document.body.removeChild(input);
+                drawTextElements();
+            };
+            document.body.appendChild(input);
+            input.focus();
+        }
+    }
+
+    onMount(() => {
+        initCanvas(false);
+        canvas.addEventListener('dblclick', handleDoubleClick);
+    });
 
     onDestroy(() => {
         removeEventListeners();
+        canvas.removeEventListener('dblclick', handleDoubleClick);
     });
 </script>
 
@@ -186,5 +284,8 @@
     }
     .cursor-text {
         cursor: text;
+    }
+    .cursor-hand {
+        cursor: grab;
     }
 </style>

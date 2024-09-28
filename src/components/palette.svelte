@@ -53,6 +53,18 @@
 </script>
 
 <section>
+    <Tooltip text="rearrage" delay={300}>
+        <button
+            on:click={() => changeTool(TOOLS.HAND)}
+            class={toolType === TOOLS.HAND ? 'active' : 'inactive'}
+            style:background
+        >
+            H
+            <span class="visually-hidden">
+                Select the hand tool to drag on the canvas
+            </span>
+        </button>
+    </Tooltip>
     <Tooltip text="write something down" delay={300}>
         <button
             on:click={() => changeTool(TOOLS.TEXT)}
@@ -127,7 +139,7 @@
         flex-direction: column;
         gap: 1rem;
         position: fixed;
-        bottom: 2rem;
+        top: 40%;
         left: 1rem;
         z-index: 10;
         background-color: #4a63796b;

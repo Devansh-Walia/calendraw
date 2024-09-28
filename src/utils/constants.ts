@@ -25,4 +25,5 @@ export enum TOOLS {
     PEN = 'pen',
     ERASER = 'eraser',
     TEXT = 'text',
+    HAND = 'hand',
 }

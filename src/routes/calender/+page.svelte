@@ -21,7 +21,7 @@
     let canvasState: CanvasData = {};
     let isLoaded = false;
 
-    let toolType = TOOLS.PEN;
+    let toolType = TOOLS.HAND;
 
     const changeTool = (tool: TOOLS) => {
         toolType = tool;

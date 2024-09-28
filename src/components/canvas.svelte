@@ -17,6 +17,7 @@
     let isDrawing = false;
     let wasChanged = false;
     let points: { x: number; y: number }[] = [];
+    let drawingData: Array<any> = [];
 
     let textElements: {
         text: string;
@@ -72,9 +73,47 @@
     function loadCanvasState() {
         if (!savedDataURL || !context) return;
 
-        const img = new Image();
-        img.src = savedDataURL;
-        img.onload = () => context.drawImage(img, 0, 0);
+        const savedData = JSON.parse(savedDataURL);
+
+        console.log(savedData);
+
+        if (savedData.drawingData) {
+            savedData.drawingData.forEach((path: any) => {
+                context.beginPath();
+                context.lineWidth = path.strokeWidth;
+                context.strokeStyle = path.color;
+
+                const points = path.points;
+                context.moveTo(points[0].x, points[0].y);
+
+                for (let i = 1; i < points.length - 2; i++) {
+                    const c = (points[i].x + points[i + 1].x) / 2;
+                    const d = (points[i].y + points[i + 1].y) / 2;
+                    context.quadraticCurveTo(points[i].x, points[i].y, c, d);
+                }
+
+                context.quadraticCurveTo(
+                    points[points.length - 2].x,
+                    points[points.length - 2].y,
+                    points[points.length - 1].x,
+                    points[points.length - 1].y,
+                );
+
+                context.lineWidth = strokeWidth + Math.random();
+                context.globalAlpha = 0.8 + Math.random() * 0.2;
+                context.stroke();
+            });
+        }
+        if (savedData.textElements) {
+            savedData.textElements.forEach((textElement: any) => {
+                context.font = '16px Arial';
+                context.fillText(
+                    textElement.text,
+                    textElement.x,
+                    textElement.y,
+                );
+            });
+        }
     }
 
     function addEventListeners() {
@@ -118,6 +157,7 @@
         switch (toolType) {
             case TOOLS.ERASER:
                 context.clearRect(0, 0, canvas.width, canvas.height);
+                drawingData = [];
                 break;
             case TOOLS.TEXT:
                 if (!editingText) {
@@ -163,7 +203,9 @@
             return;
         }
 
-        if (!isDrawing || toolType !== TOOLS.PEN) return;
+        if (!isDrawing || toolType !== TOOLS.PEN) {
+            return;
+        }
 
         const [x, y] = getEventCoordinates(event);
         points.push({ x, y });
@@ -190,6 +232,14 @@
     }
 
     function handleEnd() {
+        if (isDrawing && toolType === TOOLS.PEN) {
+            drawingData.push({
+                tool: 'pen',
+                points: [...points],
+                color: paletteColor,
+                strokeWidth,
+            });
+        }
         isDrawing = false;
         isDragging = false;
         selectedTextElement = null;
@@ -200,8 +250,13 @@
         handleEnd();
 
         if (wasChanged) {
-            const dataURL = canvas.toDataURL('image/png');
-            handleCanvasChange(canvasId, dataURL);
+            const canvasState = {
+                drawingData,
+                textElements,
+            };
+
+            const jsonData = JSON.stringify(canvasState);
+            handleCanvasChange(canvasId, jsonData);
             wasChanged = false;
         }
     }
@@ -232,6 +287,7 @@
     function handleDoubleClick(event: MouseEvent) {
         const [x, y] = getEventCoordinates(event);
         const index = selectTextElement(x, y);
+
         if (index !== null) {
             selectedTextElement = index;
             editingText = true;
@@ -240,7 +296,6 @@
             input.type = 'text';
             input.value = textElement.text;
             input.style.position = 'absolute';
-            input.hidden;
             input.style.left = `${textElement.x}px`;
             input.style.top = `${textElement.y - textElement.height}px`;
             input.style.fontSize = '16px';

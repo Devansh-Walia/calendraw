@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
+
     import { TOOLS } from '../utils/constants';
 
     export let paletteColor: string;
@@ -62,6 +63,7 @@
     }
 
     function removeEventListeners() {
+        if (!canvas) return;
         canvas.removeEventListener('mousedown', handleStart);
         canvas.removeEventListener('touchstart', handleStart);
         canvas.removeEventListener('mousemove', handleMove);
@@ -132,7 +134,9 @@
 
     onDestroy(() => {
         removeEventListeners();
-        context.clearRect(0, 0, canvas.width, canvas.height);
+        if (context && canvas) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
     });
 </script>
 

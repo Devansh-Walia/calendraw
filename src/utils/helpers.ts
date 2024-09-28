@@ -1,5 +1,9 @@
 export const getLocalStorage = async (key: string) => {
-    return JSON.parse(localStorage.getItem(key) || '');
+    const value = localStorage.getItem(key);
+
+    if (!value) return {};
+
+    return JSON.parse(value);
 };
 
 export const setLocalStorage = (key: string, value: any) => {

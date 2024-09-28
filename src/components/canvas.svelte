@@ -10,6 +10,7 @@
     export let toolType: TOOLS;
     export let key: string;
     export let handleCanvasChange: (key: string, value: string) => void;
+    export let strokeWidth = 2;
 
     let canvas: HTMLCanvasElement;
     let context: CanvasRenderingContext2D;
@@ -40,7 +41,7 @@
         if (!canvas) return;
 
         context = canvas.getContext('2d')!;
-        context.lineWidth = 2;
+        context.lineWidth = strokeWidth;
 
         const rect = canvas.parentElement?.getBoundingClientRect();
         canvas.height = rect?.height || 0;
@@ -141,7 +142,7 @@
             points[points.length - 1].y,
         );
 
-        context.lineWidth = 2 + Math.random();
+        context.lineWidth = strokeWidth + Math.random();
         context.globalAlpha = 0.8 + Math.random() * 0.2;
         context.stroke();
     }

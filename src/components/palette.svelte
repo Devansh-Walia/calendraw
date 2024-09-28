@@ -1,13 +1,19 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
 
-    import { colors, CUSTOM_COLOR_EVENT, TOOLS } from '../utils/constants';
+    import {
+        colors,
+        CUSTOM_COLOR_EVENT,
+        CUSTOM_STROKE_EVENT,
+        TOOLS,
+    } from '../utils/constants';
     import Tooltip from './tooltip.svelte';
 
     export let paletteColor = colors[0];
     export let background = 'none';
     export let changeTool: (tool: TOOLS) => void;
     export let toolType: TOOLS;
+    export let strokeWidth = 2;
 
     let isColorsPanelOpen = false;
 
@@ -36,6 +42,14 @@
 
         changeTool(TOOLS.ERASER);
     };
+
+    const handleStrokeWidthChange = (event: Event) => {
+        const target = event.target as HTMLInputElement;
+
+        strokeWidth = parseInt(target.value, 10);
+
+        dispatch(CUSTOM_STROKE_EVENT, { strokeWidth });
+    };
 </script>
 
 <section>
@@ -45,7 +59,7 @@
             class={toolType === TOOLS.TEXT ? 'active' : 'inactive'}
             style:background
         >
-            <img src="/pen.svg" alt="Pen" />
+            T
             <span class="visually-hidden">
                 Select the pen tool to write on the canvas
             </span>
@@ -73,31 +87,32 @@
             on:click={toggleColorsPanel}
             class={toolType === TOOLS.PEN ? 'active' : 'inactive'}
         >
-            <svg style:color={paletteColor} id="drop" viewBox="-50 -50 100 100">
-                <g
-                    fill="currentColor"
-                    stroke="currentColor"
-                    stroke-width="0"
-                    stroke-linecap="round"
-                >
-                    <path
-                        d="M -38 12 a 38 38 0 0 0 76 0 q 0 -28 -38 -62 -38 34 -38 62"
-                    />
-                </g>
-            </svg>
+            <img src="/pen.svg" alt="Pen" />
             {#if isColorsPanelOpen}
-                <div class="flex-row color-panel">
-                    {#each colors as color}
-                        <button
-                            on:click={() => handleColorClick(color)}
-                            style:background={color}
-                            title={`Select ${color}`}
-                        >
-                            <span class="visually-hidden">
-                                Select the color {color}
-                            </span>
-                        </button>
-                    {/each}
+                <div class="flex-col color-panel">
+                    <span class="text-black">Choose the strokeWidth </span>
+                    <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        value={strokeWidth}
+                        on:input={handleStrokeWidthChange}
+                        style:margin-bottom="0.5rem"
+                    />
+                    <span class="text-black">Choose a color</span>
+                    <div class="flex-row">
+                        {#each colors as color}
+                            <button
+                                on:click={() => handleColorClick(color)}
+                                style:background={color}
+                                title={`Select ${color}`}
+                            >
+                                <span class="visually-hidden">
+                                    Select the color {color}
+                                </span>
+                            </button>
+                        {/each}
+                    </div>
                 </div>
             {/if}
         </button>
@@ -119,6 +134,17 @@
         border-radius: 1rem;
     }
 
+    .flex-col {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .text-black {
+        color: black;
+        text-align: left;
+    }
+
     .flex-row {
         display: flex;
         flex-direction: row;
@@ -128,15 +154,12 @@
     .color-panel {
         position: absolute;
         left: 150%;
+        bottom: 20%;
         background-color: #00000016;
         color: white;
         padding: 0.5rem;
         font-size: x-small;
         border-radius: 0.25rem;
-    }
-
-    svg {
-        flex-shrink: 0;
     }
 
     div {
@@ -169,5 +192,9 @@
         border: 2px solid transparent;
         border-radius: 50%;
         margin: 0;
+    }
+
+    input[type='range'] {
+        width: 100%;
     }
 </style>

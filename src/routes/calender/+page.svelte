@@ -30,6 +30,7 @@
     let days: Day[] = [];
     let background = 'none';
     let paletteColor = colors[0];
+    let strokeWidth = 2;
 
     function initMonth() {
         const daysLocal: Day[] = [];
@@ -140,6 +141,7 @@
                     {background}
                     {handleCanvasChange}
                     savedDataURL={state}
+                    {strokeWidth}
                 />
             </div>
         {/each}
@@ -152,6 +154,9 @@
         {toolType}
         on:color={({ detail }) => {
             paletteColor = detail.color;
+        }}
+        on:strokeWidthChange={({ detail }) => {
+            strokeWidth = detail.strokeWidth;
         }}
     />
 {:else}

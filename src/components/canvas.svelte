@@ -75,8 +75,6 @@
 
         const savedData = JSON.parse(savedDataURL);
 
-        console.log(savedData);
-
         if (savedData.drawingData) {
             savedData.drawingData.forEach((path: any) => {
                 context.beginPath();

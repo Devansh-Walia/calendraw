@@ -15,6 +15,7 @@
     let context: CanvasRenderingContext2D;
     let isDrawing = false;
     let wasChanged = false;
+    let points: { x: number; y: number }[] = [];
 
     $: if (context) {
         context.strokeStyle = paletteColor;
@@ -110,6 +111,7 @@
                 break;
             default:
                 isDrawing = true;
+                points.push({ x, y });
                 context.beginPath();
                 context.moveTo(x, y);
         }
@@ -121,12 +123,32 @@
         if (!isDrawing || toolType !== TOOLS.PEN) return;
 
         const [x, y] = getEventCoordinates(event);
-        context.lineTo(x, y);
+        points.push({ x, y });
+
+        context.beginPath();
+        context.moveTo(points[0].x, points[0].y);
+
+        for (let i = 1; i < points.length - 2; i++) {
+            const c = (points[i].x + points[i + 1].x) / 2;
+            const d = (points[i].y + points[i + 1].y) / 2;
+            context.quadraticCurveTo(points[i].x, points[i].y, c, d);
+        }
+
+        context.quadraticCurveTo(
+            points[points.length - 2].x,
+            points[points.length - 2].y,
+            points[points.length - 1].x,
+            points[points.length - 1].y,
+        );
+
+        context.lineWidth = 2 + Math.random();
+        context.globalAlpha = 0.8 + Math.random() * 0.2;
         context.stroke();
     }
 
     function handleEnd() {
         isDrawing = false;
+        points = [];
     }
 
     function handleLeave() {

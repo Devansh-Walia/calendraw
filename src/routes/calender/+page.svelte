@@ -16,8 +16,10 @@
     let now = new Date();
     let year = now.getFullYear();
     let month = now.getMonth();
+    let calendarKey = `${year}-${month}`;
 
     let canvasState: CanvasData = {};
+    let isLoaded = false;
 
     let toolType = TOOLS.PEN;
 
@@ -40,7 +42,8 @@
                 name: '',
                 enabled: false,
                 date: new Date(year, month, 0),
-                id: Math.random().toString(),
+                id: `empty-${index}`,
+                state: '',
             });
         }
 
@@ -48,16 +51,23 @@
             let thisDate = new Date(year, month, index + 1);
             let id = `${year}-${month}-${thisDate.getDate()}`;
 
-            daysLocal.push({
-                id,
-                name: `${index + 1}`,
-                enabled: true,
-                date: thisDate,
-                state: canvasState[id],
-            });
+            const existingDay = days.find((day) => day.id === id);
+
+            if (existingDay) {
+                daysLocal.push(existingDay);
+            } else {
+                daysLocal.push({
+                    name: `${index + 1}`,
+                    enabled: true,
+                    date: thisDate,
+                    id,
+                    state: canvasState[id] ?? '',
+                });
+            }
         }
 
         days = daysLocal;
+        calendarKey = `${year}-${month}`;
     }
 
     const decreaseMonth = () => {
@@ -67,6 +77,7 @@
         } else {
             month = (month - 1 + 12) % 12;
         }
+        updateCalendar();
     };
 
     const increaseMonth = () => {
@@ -76,6 +87,7 @@
         } else {
             month = (month + 1) % 12;
         }
+        updateCalendar();
     };
 
     function handleCanvasChange(canvasId: string, state: string) {
@@ -83,34 +95,37 @@
         setLocalStorage(CANVAS_KEY, canvasState);
     }
 
-    $: month, year, initMonth();
+    function updateCalendar() {
+        calendarKey = `${year}-${month}`;
+        initMonth();
+    }
 
     onMount(async () => {
         canvasState = await getLocalStorage(CANVAS_KEY);
-
-        initMonth();
+        isLoaded = true;
+        updateCalendar();
     });
 </script>
 
-<div class="console">
-    <button on:click={decreaseMonth}>&lt;</button>
-    <h1>{monthNames[month]} {year}</h1>
-    <button on:click={increaseMonth}>&gt;</button>
-</div>
+{#if isLoaded}
+    <div class="console">
+        <button on:click={decreaseMonth}>&lt;</button>
+        <h1>{monthNames[month]} {year}</h1>
+        <button on:click={increaseMonth}>&gt;</button>
+    </div>
 
-<div class="calendar divide-x divide-y crooked">
-    {#each dayNames as dayName}
-        <div class="patrick-hand text-center title">{dayName}</div>
-    {/each}
+    <div class="calendar divide-x divide-y crooked">
+        {#each dayNames as dayName}
+            <div class="patrick-hand text-center title">{dayName}</div>
+        {/each}
 
-    {#each days as day}
-        {@const { date, enabled, name, id, state } = day}
-        {@const isToday =
-            date.getDate() === now.getDate() &&
-            date.getMonth() === now.getMonth() &&
-            date.getFullYear() === now.getFullYear()}
+        {#each days as day (day.id)}
+            {@const { date, enabled, name, id, state } = day}
+            {@const isToday =
+                date.getDate() === now.getDate() &&
+                date.getMonth() === now.getMonth() &&
+                date.getFullYear() === now.getFullYear()}
 
-        {#key id}
             <div
                 class="day {enabled ? 'crooked' : ''} {isToday
                     ? 'is-active'
@@ -118,27 +133,32 @@
             >
                 <span class="caption">{name}</span>
                 <Canvas
+                    key={calendarKey}
                     {toolType}
-                    canvasId={id ?? ''}
+                    canvasId={id}
                     {paletteColor}
                     {background}
                     {handleCanvasChange}
-                    savedDataURL={state ?? ''}
+                    savedDataURL={state}
                 />
             </div>
-        {/key}
-    {/each}
-</div>
+        {/each}
+    </div>
 
-<Palette
-    {paletteColor}
-    {background}
-    {changeTool}
-    {toolType}
-    on:color={({ detail }) => {
-        paletteColor = detail.color;
-    }}
-/>
+    <Palette
+        {paletteColor}
+        {background}
+        {changeTool}
+        {toolType}
+        on:color={({ detail }) => {
+            paletteColor = detail.color;
+        }}
+    />
+{:else}
+    <div class="loading-container">
+        <div class="loading" />
+    </div>
+{/if}
 
 <style>
     .console {
@@ -200,5 +220,11 @@
         font-weight: bold;
         padding-top: 2rem;
         padding-bottom: 2rem;
+    }
+    .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
     }
 </style>

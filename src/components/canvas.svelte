@@ -6,8 +6,9 @@
     export let paletteColor: string;
     export let background = 'none';
     export let canvasId: string;
-    export let savedDataURL: string;
+    export let savedDataURL: string | undefined;
     export let toolType: TOOLS;
+    export let key: string;
     export let handleCanvasChange: (key: string, value: string) => void;
 
     let canvas: HTMLCanvasElement;
@@ -24,13 +25,17 @@
         loadCanvasState();
     }
 
+    $: if (key && canvas) {
+        initCanvas(true);
+    }
+
     const toolCursors = {
         [TOOLS.ERASER]: 'cursor-eraser',
         [TOOLS.PEN]: 'cursor-pen',
         [TOOLS.TEXT]: 'cursor-text',
     };
 
-    function initCanvas() {
+    function initCanvas(clear = false) {
         if (!canvas) return;
 
         context = canvas.getContext('2d')!;
@@ -39,6 +44,10 @@
         const rect = canvas.parentElement?.getBoundingClientRect();
         canvas.height = rect?.height || 0;
         canvas.width = rect?.width || 0;
+
+        if (clear) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
 
         loadCanvasState();
         addEventListeners();
@@ -130,13 +139,10 @@
         }
     }
 
-    onMount(initCanvas);
+    onMount(() => initCanvas(false));
 
     onDestroy(() => {
         removeEventListeners();
-        if (context && canvas) {
-            context.clearRect(0, 0, canvas.width, canvas.height);
-        }
     });
 </script>
 

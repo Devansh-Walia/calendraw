@@ -45,12 +45,17 @@
                 date: new Date(year, month, 0),
                 id: `empty-${index}`,
                 state: '',
+                isToday: false,
             });
         }
 
         for (let index = 0; index < daysInThisMonth; index++) {
-            let thisDate = new Date(year, month, index + 1);
-            let id = `${year}-${month}-${thisDate.getDate()}`;
+            const thisDate = new Date(year, month, index + 1);
+            const id = `${year}-${month}-${thisDate.getDate()}`;
+            const isToday =
+                thisDate.getDate() === now.getDate() &&
+                thisDate.getMonth() === now.getMonth() &&
+                thisDate.getFullYear() === now.getFullYear();
 
             const existingDay = days.find((day) => day.id === id);
 
@@ -63,6 +68,7 @@
                     date: thisDate,
                     id,
                     state: canvasState[id] ?? '',
+                    isToday,
                 });
             }
         }
@@ -93,6 +99,7 @@
 
     function handleCanvasChange(canvasId: string, state: string) {
         canvasState[canvasId] = state;
+
         setLocalStorage(CANVAS_KEY, canvasState);
     }
 
@@ -121,11 +128,7 @@
         {/each}
 
         {#each days as day (day.id)}
-            {@const { date, enabled, name, id, state } = day}
-            {@const isToday =
-                date.getDate() === now.getDate() &&
-                date.getMonth() === now.getMonth() &&
-                date.getFullYear() === now.getFullYear()}
+            {@const { id, enabled, name, state, isToday } = day}
 
             <div
                 class="day {enabled ? 'crooked' : ''} {isToday
@@ -134,14 +137,13 @@
             >
                 <span class="caption">{name}</span>
                 <Canvas
-                    key={calendarKey}
                     {toolType}
-                    canvasId={id}
                     {paletteColor}
                     {background}
-                    {handleCanvasChange}
-                    savedDataURL={state}
                     {strokeWidth}
+                    {id}
+                    {state}
+                    {handleCanvasChange}
                 />
             </div>
         {/each}

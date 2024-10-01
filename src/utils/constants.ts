@@ -27,3 +27,10 @@ export enum TOOLS {
     TEXT = 'text',
     HAND = 'hand',
 }
+
+export const toolCursors = {
+    [TOOLS.ERASER]: 'cursor-eraser',
+    [TOOLS.PEN]: 'cursor-pen',
+    [TOOLS.TEXT]: 'cursor-text',
+    [TOOLS.HAND]: 'cursor-hand',
+};

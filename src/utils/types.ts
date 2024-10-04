@@ -26,4 +26,5 @@ export type Element = {
     strokeWidth: number;
     position: Point;
     selected: boolean;
+    crossedOut: boolean;
 };

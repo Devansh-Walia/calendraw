@@ -50,6 +50,10 @@
 
         dispatch(CUSTOM_STROKE_EVENT, { strokeWidth });
     };
+
+    const handleCrossOutClick = () => {
+        changeTool(TOOLS.CROSS_OUT);
+    };
 </script>
 
 <section>
@@ -86,6 +90,19 @@
             <img src="/eraser.svg" alt="Eraser" />
             <span class="visually-hidden">
                 Select the background color to clear the canvas
+            </span>
+        </button>
+    </Tooltip>
+    <Tooltip text="cross out content" delay={300}>
+        <button
+            on:click={handleCrossOutClick}
+            class={toolType === TOOLS.CROSS_OUT ? 'active' : 'inactive'}
+            style:background
+        >
+            X
+            <span class="visually-hidden">
+                Select the cross-out tool to strike through content on the
+                canvas
             </span>
         </button>
     </Tooltip>

@@ -26,25 +26,27 @@
     let scale = 1;
     let dragStart: Point | null = null;
 
-    let offsetX = 0;
-    let offsetY = 0;
+    const CELL_SIZE = 100;
 
     function getMousePosition(event: MouseEvent | TouchEvent): {
-        offsetX: number;
-        offsetY: number;
+        x: number;
+        y: number;
     } {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
         if (event instanceof TouchEvent) {
             const touch = event.touches[0];
-
             return {
-                offsetX: (touch.clientX - offsetX) / scale,
-                offsetY: (touch.clientY - offsetY) / scale,
+                x: ((touch.clientX - rect.left) * scaleX) / scale,
+                y: ((touch.clientY - rect.top) * scaleY) / scale,
             };
         }
 
         return {
-            offsetX: (event.offsetX - offsetX) / scale,
-            offsetY: (event.offsetY - offsetY) / scale,
+            x: ((event.clientX - rect.left) * scaleX) / scale,
+            y: ((event.clientY - rect.top) * scaleY) / scale,
         };
     }
 
@@ -131,7 +133,7 @@
     }
 
     const startInteraction = (e: MouseEvent | TouchEvent) => {
-        const { offsetX: x, offsetY: y } = getMousePosition(e);
+        const { x, y } = getMousePosition(e);
 
         if (toolType === TOOLS.HAND) {
             const clickedElement = elements.find((element) =>
@@ -148,6 +150,28 @@
             } else if (!e.shiftKey) {
                 elements.forEach((el) => (el.selected = false));
             }
+        } else if (toolType === TOOLS.CROSS_OUT) {
+            const crossElement: Element = {
+                id: elements.length,
+                type: TOOLS.CROSS_OUT,
+                points: [
+                    { x: 0, y: 0 },
+                    { x: CELL_SIZE, y: CELL_SIZE },
+                    { x: 0, y: CELL_SIZE },
+                    { x: CELL_SIZE, y: 0 },
+                ],
+                strokeColor: 'red',
+                strokeWidth: 3,
+                position: { x: 0, y: 0 },
+                selected: false,
+                crossedOut: false,
+            };
+            elements = [...elements, crossElement];
+            undoStack = [...undoStack, crossElement];
+            redraw();
+        } else if (toolType === TOOLS.ERASER) {
+            drawing = true;
+            eraseAtPoint(x, y);
         } else {
             drawing = true;
 
@@ -159,6 +183,7 @@
                 strokeWidth,
                 position: { x: 0, y: 0 },
                 selected: false,
+                crossedOut: false,
             };
 
             elements = [...elements, currentElement];
@@ -169,11 +194,15 @@
     };
 
     const handleInteraction = (e: MouseEvent | TouchEvent) => {
-        const { offsetX: x, offsetY: y } = getMousePosition(e);
+        const { x, y } = getMousePosition(e);
 
-        if (toolType === TOOLS.PEN && drawing && currentElement) {
-            currentElement.points = [...currentElement.points, { x, y }];
-            smoothFreehand();
+        if ((toolType === TOOLS.PEN || toolType === TOOLS.ERASER) && drawing) {
+            if (toolType === TOOLS.PEN && currentElement) {
+                currentElement.points = [...currentElement.points, { x, y }];
+                smoothFreehand();
+            } else if (toolType === TOOLS.ERASER) {
+                eraseAtPoint(x, y);
+            }
             redraw();
         } else if (toolType === TOOLS.HAND && dragging && dragStart) {
             const dx = x - dragStart.x;
@@ -200,6 +229,7 @@
         dragging = false;
         currentElement = null;
         dragStart = null;
+        redraw();
     };
 
     function undo(): void {
@@ -233,26 +263,67 @@
 
     function handleZoom(event: WheelEvent): void {
         event.preventDefault();
-        const zoomAmount = event.deltaY * -0.01;
-        const newScale = scale + zoomAmount;
-        if (newScale > 0.1 && newScale < 10) {
-            scale = newScale;
-            redraw();
-        }
+        const zoomAmount = event.deltaY * -0.001;
+        const newScale = Math.max(0.1, Math.min(scale + zoomAmount, 3));
+        scale = newScale;
+        redraw();
     }
+
+    const drawCross = (element: Element) => {
+        if (!context) return;
+
+        context.beginPath();
+        context.moveTo(element.points[0].x, element.points[0].y);
+        context.lineTo(element.points[1].x, element.points[1].y);
+        context.moveTo(element.points[2].x, element.points[2].y);
+        context.lineTo(element.points[3].x, element.points[3].y);
+        context.strokeStyle = element.strokeColor;
+        context.lineWidth = element.strokeWidth;
+        context.stroke();
+    };
+
+    const eraseAtPoint = (x: number, y: number) => {
+        const eraserSize = 20 / scale;
+        elements = elements.filter((element) => {
+            if (element.type === TOOLS.PEN) {
+                element.points = element.points.filter((point) => {
+                    const dx = point.x + element.position.x - x;
+                    const dy = point.y + element.position.y - y;
+                    return Math.sqrt(dx * dx + dy * dy) > eraserSize / 2;
+                });
+                return element.points.length > 1;
+            } else if (element.type === TOOLS.CROSS_OUT) {
+                // Check if the eraser intersects with the cross
+                const crossLeft = element.position.x;
+                const crossRight = element.position.x + CELL_SIZE;
+                const crossTop = element.position.y;
+                const crossBottom = element.position.y + CELL_SIZE;
+
+                if (
+                    x >= crossLeft - eraserSize / 2 &&
+                    x <= crossRight + eraserSize / 2 &&
+                    y >= crossTop - eraserSize / 2 &&
+                    y <= crossBottom + eraserSize / 2
+                ) {
+                    // If the eraser intersects with the cross, remove it entirely
+                    return false;
+                }
+            }
+            return true;
+        });
+    };
 
     const redraw = () => {
         if (!context) return;
 
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.save();
-        context.translate(offsetX, offsetY);
         context.scale(scale, scale);
 
         elements.forEach((element) => {
             if (element.type === TOOLS.PEN) {
                 context.strokeStyle = element.strokeColor;
-                context.lineWidth = element.strokeWidth;
+                context.lineWidth = element.strokeWidth / scale;
                 context.lineCap = 'round';
 
                 context.beginPath();
@@ -271,28 +342,30 @@
 
                 if (element.selected) {
                     context.strokeStyle = 'blue';
-                    context.lineWidth = 2;
-                    context.setLineDash([5, 5]);
+                    context.lineWidth = 2 / scale;
+                    context.setLineDash([5 / scale, 5 / scale]);
                     context.beginPath();
 
                     context.strokeRect(
                         element.position.x +
                             Math.min(...element.points.map((p) => p.x)) -
-                            5,
+                            5 / scale,
                         element.position.y +
                             Math.min(...element.points.map((p) => p.y)) -
-                            5,
+                            5 / scale,
                         Math.max(...element.points.map((p) => p.x)) -
                             Math.min(...element.points.map((p) => p.x)) +
-                            10,
+                            10 / scale,
                         Math.max(...element.points.map((p) => p.y)) -
                             Math.min(...element.points.map((p) => p.y)) +
-                            10,
+                            10 / scale,
                     );
 
                     context.stroke();
                     context.setLineDash([]);
                 }
+            } else if (element.type === TOOLS.CROSS_OUT) {
+                drawCross(element);
             }
         });
 
@@ -301,6 +374,8 @@
     };
 
     onMount(() => {
+        canvas.width = CELL_SIZE;
+        canvas.height = CELL_SIZE;
         context = canvas.getContext('2d') as CanvasRenderingContext2D;
 
         if (state) {
@@ -309,8 +384,6 @@
             elements = data?.elements as Element[];
             redraw();
         }
-
-        canvas.addEventListener('mousemove', redraw);
     });
 
     onDestroy(() => {
@@ -320,7 +393,7 @@
 
 <canvas
     class={toolCursors[toolType]}
-    style={`background: ${background}; color: ${paletteColor}`}
+    style={`background: ${background}; color: ${paletteColor}; width: 100%; height: 100%;`}
     bind:this={canvas}
     on:mousedown={startInteraction}
     on:mouseup={stopInteraction}
@@ -347,5 +420,8 @@
     }
     .cursor-hand {
         cursor: grab;
+    }
+    .cursor-cross-out {
+        cursor: crosshair;
     }
 </style>

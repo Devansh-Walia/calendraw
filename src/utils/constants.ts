@@ -26,6 +26,7 @@ export enum TOOLS {
     ERASER = 'eraser',
     TEXT = 'text',
     HAND = 'hand',
+    CROSS_OUT = 'cross-out',
 }
 
 export const toolCursors = {
@@ -33,4 +34,5 @@ export const toolCursors = {
     [TOOLS.PEN]: 'cursor-pen',
     [TOOLS.TEXT]: 'cursor-text',
     [TOOLS.HAND]: 'cursor-hand',
+    [TOOLS.CROSS_OUT]: 'cursor-cross-out',
 };

@@ -69,7 +69,7 @@
             </span>
         </button>
     </Tooltip>
-    <Tooltip text="write something down" delay={300}>
+    <!-- <Tooltip text="write something down" delay={300}>
         <button
             on:click={() => changeTool(TOOLS.TEXT)}
             class={toolType === TOOLS.TEXT ? 'active' : 'inactive'}
@@ -80,7 +80,7 @@
                 Select the pen tool to write on the canvas
             </span>
         </button>
-    </Tooltip>
+    </Tooltip> -->
     <Tooltip text="reset your mistakes!!" delay={300}>
         <button
             on:click={handleEraserClick}

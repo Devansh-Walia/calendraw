@@ -404,7 +404,7 @@
     on:touchmove={handleInteraction}
     on:touchcancel={stopInteraction}
     on:wheel={handleZoom}
-/>
+></canvas>
 
 <style>
     .cursor-eraser {

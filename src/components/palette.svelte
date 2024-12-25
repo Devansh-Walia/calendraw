@@ -17,6 +17,8 @@
 
     let isColorsPanelOpen = false;
 
+    const dispatch = createEventDispatcher();
+
     const toggleColorsPanel = () => {
         if (toolType !== TOOLS.PEN) {
             changeTool(TOOLS.PEN);
@@ -25,15 +27,11 @@
         }
     };
 
-    const dispatch = createEventDispatcher();
-
     const handleColorClick = (color: string) => {
         dispatch(CUSTOM_COLOR_EVENT, { color });
         paletteColor = color;
 
         toggleColorsPanel();
-
-        changeTool(TOOLS.PEN);
     };
 
     const handleEraserClick = () => {
@@ -69,7 +67,7 @@
             </span>
         </button>
     </Tooltip>
-    <!-- <Tooltip text="write something down" delay={300}>
+    <Tooltip text="write something down" delay={300}>
         <button
             on:click={() => changeTool(TOOLS.TEXT)}
             class={toolType === TOOLS.TEXT ? 'active' : 'inactive'}
@@ -80,7 +78,7 @@
                 Select the pen tool to write on the canvas
             </span>
         </button>
-    </Tooltip> -->
+    </Tooltip>
     <Tooltip text="reset your mistakes!!" delay={300}>
         <button
             on:click={handleEraserClick}
@@ -108,7 +106,7 @@
     </Tooltip>
 
     <Tooltip
-        text="Choose a color to make the mistake... or click the dropper to select a color from the canvas"
+        text="Choose a color to make the mistake... or click the dropper to select a color of your own"
         delay={300}
         hidden={isColorsPanelOpen}
     >
@@ -117,34 +115,40 @@
             class={toolType === TOOLS.PEN ? 'active' : 'inactive'}
         >
             <img src="/pen.svg" alt="Pen" />
-            {#if isColorsPanelOpen}
-                <div class="flex-col color-panel">
-                    <span class="text-black">Choose the strokeWidth </span>
-                    <input
-                        type="range"
-                        min="1"
-                        max="10"
-                        value={strokeWidth}
-                        on:input={handleStrokeWidthChange}
-                        style:margin-bottom="0.5rem"
-                    />
-                    <span class="text-black">Choose a color</span>
-                    <div class="flex-row">
-                        {#each colors as color}
-                            <button
-                                on:click={() => handleColorClick(color)}
-                                style:background={color}
-                                title={`Select ${color}`}
-                            >
-                                <span class="visually-hidden">
-                                    Select the color {color}
-                                </span>
-                            </button>
-                        {/each}
-                    </div>
-                </div>
-            {/if}
         </button>
+        {#if isColorsPanelOpen}
+            <div class="flex-col color-panel">
+                <span class="text-black">Choose the strokeWidth </span>
+                <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    value={strokeWidth}
+                    on:input={handleStrokeWidthChange}
+                    style:margin-bottom="0.5rem"
+                />
+                <span class="text-black">Choose a color</span>
+                <div class="flex-row">
+                    <input
+                        type="color"
+                        value={paletteColor}
+                        on:blur={(e) => handleColorClick(e.target.value)}
+                    />
+
+                    {#each colors as color}
+                        <button
+                            on:click={() => handleColorClick(color)}
+                            style:background={color}
+                            title={`Select ${color}`}
+                        >
+                            <span class="visually-hidden">
+                                Select the color {color}
+                            </span>
+                        </button>
+                    {/each}
+                </div>
+            </div>
+        {/if}
     </Tooltip>
 </section>
 

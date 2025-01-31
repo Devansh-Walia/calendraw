@@ -1,10 +1,9 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
     import { fade, fly } from 'svelte/transition';
 </script>
 
 <svelte:head>
-    <title>Sketchy - Digital Drawing Made Simple</title>
+    <title>Calendraw - Digital Drawing Made Simple</title>
     <meta
         name="description"
         content="A powerful yet simple digital drawing and annotation tool"
@@ -17,8 +16,8 @@
 
 <main>
     <section class="hero" in:fade>
-        <h1>Welcome to Sketchy</h1>
-        <p class="tagline">Digital drawing and annotation made simple</p>
+        <h1>Welcome to Calendraw</h1>
+        <p class="tagline">Calender made Digital</p>
         <div class="cta-buttons">
             <a href="/calender" class="cta-primary">Start Drawing</a>
             <a href="#features" class="cta-secondary">Learn More</a>

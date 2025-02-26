@@ -11,8 +11,20 @@
     </main>
 
     <footer>
-        <!-- todo add the git hub repo link here -->
-        <p>Visit <a href="/">this</a> repo to see more about it</p>
+        <p>
+            Visit <a
+                href="https://github.com/Devansh-Walia/calendraw"
+                target="_blank"
+                rel="noopener noreferrer">this GitHub repo</a
+            > to learn more
+        </p>
+        <p>
+            Created by <a
+                href="https://devanshwalia.com"
+                target="_blank"
+                rel="noopener noreferrer">Devansh Walia</a
+            >
+        </p>
     </footer>
 </div>
 

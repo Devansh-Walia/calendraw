@@ -6,18 +6,52 @@
     <title>Calendraw - Digital Drawing Made Simple</title>
     <meta
         name="description"
-        content="A powerful yet simple digital drawing and annotation tool"
+        content="A powerful yet simple digital drawing and annotation tool for creating beautiful calendars"
     />
+    <meta
+        name="keywords"
+        content="digital drawing, calendar, sketching, online drawing tool, creative calendar"
+    />
+    <meta
+        property="og:title"
+        content="Calendraw - Digital Drawing Made Simple"
+    />
+    <meta
+        property="og:description"
+        content="A powerful yet simple digital drawing and annotation tool for creating beautiful calendars"
+    />
+    <meta property="og:url" content="https://calendar.devanshwalia.com/" />
+    <meta property="og:type" content="website" />
     <link
         href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600&display=swap"
         rel="stylesheet"
     />
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            "name": "Calendraw",
+            "description": "A powerful yet simple digital drawing and annotation tool for creating beautiful calendars",
+            "applicationCategory": "DesignApplication",
+            "operatingSystem": "Web",
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            },
+            "author": {
+                "@type": "Person",
+                "name": "Devansh Walia",
+                "url": "https://devanshwalia.com"
+            }
+        }
+    </script>
 </svelte:head>
 
 <main>
     <section class="hero" in:fade>
         <h1>Welcome to Calendraw</h1>
-        <p class="tagline">Calender made Digital</p>
+        <p class="tagline">Calendar made Digital</p>
         <div class="cta-buttons">
             <a href="/calender" class="cta-primary">Start Drawing</a>
             <a href="#features" class="cta-secondary">Learn More</a>

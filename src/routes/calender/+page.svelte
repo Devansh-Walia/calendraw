@@ -115,6 +115,23 @@
     });
 </script>
 
+<svelte:head>
+    <title>Calendar - Calendraw</title>
+    <meta
+        name="description"
+        content="Create and customize your digital calendar with our intuitive drawing tools"
+    />
+    <meta property="og:title" content="Calendar - Calendraw" />
+    <meta
+        property="og:description"
+        content="Create and customize your digital calendar with our intuitive drawing tools"
+    />
+    <meta
+        property="og:url"
+        content="https://calendar.devanshwalia.com/calender"
+    />
+</svelte:head>
+
 {#if isLoaded}
     <div class="console">
         <button on:click={decreaseMonth}>&lt;</button>
